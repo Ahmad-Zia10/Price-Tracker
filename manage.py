@@ -51,17 +51,17 @@ def list_products():
 
 def add_product():
     """Interactively prompt the user for a new product and save it."""
-    print("\n  ── Add a new product ──")
+    print("\n Add a new product ")
     print("  (Press Ctrl+C at any time to cancel)\n")
 
     try:
-        # --- Get product name ---
+        # Get product name
         name = input("  Product name (e.g. 'iPhone 15'): ").strip()
         if not name:
             print("  [!] Name cannot be empty.")
             return
 
-        # --- Check for duplicates ---
+        # Check for duplicates
         products = load_products()
         existing_names = [p['name'].lower() for p in products]
         if name.lower() in existing_names:
@@ -119,7 +119,7 @@ def remove_product():
         print("\n  No products to remove.\n")
         return
 
-    print("\n  ── Remove a product ──\n")
+    print("\n Remove a product \n")
     for i, p in enumerate(products, 1):
         print(f"  {i}. {p['name']}  (£{p['target_price']:.2f})")
 
@@ -146,7 +146,7 @@ def remove_product():
         print("\n\n  Cancelled.\n")
 
 
-# ── Entry point ───────────────────────────────────────────────
+# Entry point 
 
 COMMANDS = {
     "list":   list_products,

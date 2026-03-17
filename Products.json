@@ -13,5 +13,10 @@
         "name": "Soumission",
         "url": "https://books.toscrape.com/catalogue/soumission_998/index.html",
         "target_price": 48.0
+    },
+    {
+        "name": "Samsung M34",
+        "url": "https://www.amazon.in/Samsung-sAMOLED-Display-Battery-Security/dp/B0C7C1DRK5",
+        "target_price": 14000.0
     }
 ]
