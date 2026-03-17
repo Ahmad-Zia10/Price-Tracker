@@ -3,45 +3,64 @@
 import requests
 from bs4 import BeautifulSoup
 from config import HEADERS
+ 
+# Add new sites here as you discover their price elements.
+# "domain"  →  (html_tag, css_class)
+# Where the price lives at each site.
+SITE_SELECTORS = {
+    "books.toscrape.com": ("p",    "price_color",  None),
+    "amazon.in":          ("span", "a-price-whole", None),
+    "flipkart.com":       ("div",  "v1zwn21k",      None),
+    "myntra.com":         ("span", "pdp-price",     "strong"),  # ← third value = child tag
+}
 
+
+def detect_selector(url : str) :
+    """Checks given url against the selecctors list and finds out which site to scrape to determine the correct 
+    tag name and class name to target and get the price"""
+
+    for domain, selector in SITE_SELECTORS.items():
+        if domain in url:
+            return selector
+    return None
 
 def get_price(url: str) -> float | None:
     """
-    Visits a product URL and returns the price as a float.
+    Visits a product URL, auto-detects the site, and extracts the price.
     """
+    #   Detect which site this is
+    selector = detect_selector(url)
+
+    if selector is None:
+        print(f"  [!] Unrecognised site. Supported: {', '.join(SITE_SELECTORS.keys())}")
+        return None
+
+    tag, css_class = selector
+
     try:
-        # Download the page 
         response = requests.get(url, headers=HEADERS, timeout=10)
-        response.raise_for_status()  # Raises an error for 4xx/5xx HTTP codes
+        response.raise_for_status()
 
-        # Parse the HTML
         soup = BeautifulSoup(response.text, "html.parser")
-
-        # Find the price element
-        # On books.toscrape.com the price lives in: <p class="price_color">£51.77</p>
-        # On Amazon it would be: <span class="a-price-whole"> etc.
-        # You adapt this one line per site — everything else stays the same!
-        price_tag = soup.find("p", class_="price_color") 
+        price_tag = soup.find(tag, class_=css_class)
 
         if not price_tag:
-            print(f"  [!] Price element not found at {url}")
+            print(f"  [!] Price element not found on page.")
+            print(f"      The site may have updated its HTML. Check scraper.py → SITE_SELECTORS.")
             return None
 
-        # Clean and convert
-        # price_tag.text might look like "£51.77" or "Â£51.77"
         raw = price_tag.text.strip()
-        # Remove any non-numeric characters except the decimal point
         cleaned = "".join(ch for ch in raw if ch.isdigit() or ch == ".")
         return float(cleaned)
 
     except requests.exceptions.Timeout:
-        print(f"  [!] Request timed out for {url}")
+        print(f"  [!] Request timed out.")
         return None
     except requests.exceptions.RequestException as e:
         print(f"  [!] Network error: {e}")
         return None
     except ValueError as e:
-        print(f"  [!] Could not convert price to number: {e}")
+        print(f"  [!] Could not parse price: {e}")
         return None
 
 
