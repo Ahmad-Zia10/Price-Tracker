@@ -50,8 +50,10 @@ def list_products():
 
 
 def add_product():
-    """Interactively prompt the user for a new product and save it."""
-    print("\n Add a new product ")
+    from scraper import detect_selector, SITE_SELECTORS
+
+    print("\n  ── Add a new product ──")
+    print(f"  Supported sites: {', '.join(SITE_SELECTORS.keys())}")
     print("  (Press Ctrl+C at any time to cancel)\n")
 
     try:
@@ -68,16 +70,21 @@ def add_product():
             print(f"  [!] '{name}' is already being tracked.")
             return
 
-        # --- Get URL ---
+        # Get URL and validate it's a supported site
         url = input("  Product URL: ").strip()
         if not url.startswith("http"):
             print("  [!] URL must start with http:// or https://")
             return
 
-        # --- Get target price ---
+        if detect_selector(url) is None:
+            print(f"  [!] Unrecognised site.")
+            print(f"      Supported: {', '.join(SITE_SELECTORS.keys())}")
+            return
+
+        # Get target price
         while True:
             try:
-                raw = input("  Alert me when price drops below £: ").strip()
+                raw = input("  Alert me when price drops below: ").strip()
                 target_price = float(raw)
                 if target_price <= 0:
                     print("  [!] Price must be greater than 0.")
@@ -86,21 +93,21 @@ def add_product():
             except ValueError:
                 print("  [!] Please enter a number (e.g. 29.99)")
 
-        # --- Confirm ---
+        # Confirm
         print(f"\n  Adding:")
         print(f"    Name:         {name}")
         print(f"    URL:          {url[:60]}{'...' if len(url) > 60 else ''}")
-        print(f"    Alert below:  £{target_price:.2f}")
+        print(f"    Alert below:  {target_price:.2f}")
         confirm = input("\n  Confirm? (y/n): ").strip().lower()
 
         if confirm != 'y':
             print("  Cancelled.")
             return
 
-        # --- Save ---
+        # Save (no tag/class needed anymore)
         products.append({
-            "name": name,
-            "url": url,
+            "name":         name,
+            "url":          url,
             "target_price": target_price
         })
         save_products(products)
